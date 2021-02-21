@@ -1,34 +1,41 @@
 package th.ac.ku.atm.service;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import javax.annotation.PostConstruct;
+import java.util.NoSuchElementException;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
+import th.ac.ku.atm.data.CustomerRepository;
 import th.ac.ku.atm.model.Customer;
 
 @Service
 public class CustomerService {
 
-	private static List<Customer> customerList;
+//	private static List<Customer> customerList;
 
-	@PostConstruct
-	public void postConstruct() {
-		if (CustomerService.customerList == null)
-			CustomerService.customerList = new ArrayList<>();
+	private CustomerRepository repository;
+
+//	@PostConstruct
+//	public void postConstruct() {
+//		if (CustomerService.customerList == null)
+//			CustomerService.customerList = new ArrayList<>();
+//	}
+
+	public CustomerService(CustomerRepository repository) {
+		this.repository = repository;
 	}
 
 	public void createCustomer(Customer customer) {
 		String hashPin = hash(customer.getPin());
 		customer.setPin(hashPin);
-		customerList.add(customer);
+//		customerList.add(customer);
+		repository.save(customer);
 	}
 
 	public List<Customer> getCustomers() {
-		return new ArrayList<>(CustomerService.customerList);
+//		return new ArrayList<>(CustomerService.customerList);
+		return repository.findAll();
 	}
 
 	private String hash(String pin) {
@@ -37,11 +44,17 @@ public class CustomerService {
 	}
 
 	public Customer findCustomer(int id) {
-		for (Customer customer : customerList) {
-			if (customer.getId() == id)
-				return customer;
+//		for (Customer customer : customerList) {
+//			if (customer.getId() == id)
+//				return customer;
+//		}
+//		return null;
+		try {
+			return repository.findById(id).get();
+		} catch (NoSuchElementException e) {
+			return null;
 		}
-		return null;
+
 	}
 
 	public Customer checkPin(Customer inputCustomer) {
