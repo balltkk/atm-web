@@ -4,40 +4,49 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import th.ac.ku.atm.model.BankAccount;
 import th.ac.ku.atm.service.BankAccountService;
-import th.ac.ku.atm.service.CustomerService;
 
 @Controller
 @RequestMapping("/bankaccount")
 public class BankAccountController {
 
-	private CustomerService customerService;
-	private BankAccountService bankAccountService;
+	private BankAccountService accountService;
 
-	public BankAccountController(CustomerService customerService, BankAccountService bankAccountService) {
-		this.customerService = customerService;
-		this.bankAccountService = bankAccountService;
+	public BankAccountController(BankAccountService accountService) {
+		this.accountService = accountService;
 	}
 
 	@GetMapping
 	public String getBankAccountPage(Model model) {
-		model.addAttribute("allBankAccount", bankAccountService.getBankAccountList());
+		model.addAttribute("bankaccounts", accountService.getBankAccounts());
 		return "bankaccount";
 	}
 
 	@PostMapping
-	public String registerBankAccount(@ModelAttribute BankAccount bankAccount, Model model) {
-		if (bankAccountService.createBankAccount(bankAccount, customerService.getCustomers())) {
-			model.addAttribute("allBankAccount", bankAccountService.getBankAccountList());
-			return "redirect:bankaccount";
-		} else {
-			model.addAttribute("greeting", "Can't find customer");
-			return "home";
-		}
+	public String openAccount(@ModelAttribute BankAccount bankAccount, Model model) {
+		accountService.openAccount(bankAccount);
+		model.addAttribute("bankaccounts", accountService.getBankAccounts());
+		return "redirect:bankaccount";
+	}
+
+	@GetMapping("/edit/{id}")
+	public String getEditBankAccountPage(@PathVariable int id, Model model) {
+		BankAccount account = accountService.getBankAccount(id);
+		model.addAttribute("bankAccount", account);
+		return "bankaccount-edit";
+	}
+
+	@PostMapping("/edit/{id}")
+	public String editAccount(@PathVariable int id, @ModelAttribute BankAccount bankAccount, Model model) {
+
+		accountService.editBankAccount(bankAccount);
+		model.addAttribute("bankaccounts", accountService.getBankAccounts());
+		return "redirect:/bankaccount";
 	}
 
 }
